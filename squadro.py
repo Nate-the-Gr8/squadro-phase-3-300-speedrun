@@ -328,3 +328,4 @@ if __name__ == "__main__":
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
     # print(squadro)
 
+#tessssssttttt 222222222
