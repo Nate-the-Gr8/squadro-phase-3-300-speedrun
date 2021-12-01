@@ -9,6 +9,8 @@ Functions:
     des pions du joueur et des pions de l'enemi en les avançant tous
 """
 from squadro_interface import SquadroInterface
+from datetime import datetime
+import json
 
 
 class Squadro(SquadroInterface):
@@ -21,7 +23,8 @@ class Squadro(SquadroInterface):
         self.moves = [3, 1, 2, 1, 3]
         self.vertmoves = [1, 3, 2, 3, 1]
         self.allmoves = [self.moves, self.vertmoves]
-        self.weights = [1, 1, 1/10, 1.5, 0.25]
+        # en ordre: sabotage, danger, blocus, risque, investissement
+        self.weights = [3, 1.5, 1/3, 1.5, 0.5]
 
         for joueur in joueurs:
             if not isinstance(joueur, dict):
@@ -126,7 +129,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
@@ -207,16 +210,18 @@ class Squadro(SquadroInterface):
                 scores[pion] += self.weights[3] * \
                     evaluate_score(board1, board2)
                 # investissement
-                if board2.état[playerindex]["pions"][pion] != 12:
-                    board2 = Squadro(*board1.état_jeu())
-                    board2.advance_all(self.état[enemyindex]["nom"])
-                    board2.advance_all(self.état[enemyindex]["nom"])
-                    board3 = Squadro(*board2.état_jeu())
-                    if not board2.jeu_terminé():
-                        # j'arrive tout de même parfois à l'exception du jeu terminé malgré le if
-                        board2.déplacer_jeton(joueur, pion+1)
-                        scores[pion] += self.weights[4] * \
-                            evaluate_score(board3, board2)
+                board2 = Squadro(*board1.état_jeu())
+                if board2.jeu_terminé() is not False:
+                    continue
+                board2.advance_all(self.état[enemyindex]["nom"])
+                board2.advance_all(self.état[enemyindex]["nom"])
+                board3 = Squadro(*board2.état_jeu())
+                if board2.état[playerindex]["pions"][pion] == 12 or board2.jeu_terminé() is not False:
+                    continue
+                    # j'arrive tout de même parfois à l'exception du jeu terminé malgré le if
+                board2.déplacer_jeton(joueur, pion+1)
+                scores[pion] += self.weights[4] * \
+                    evaluate_score(board3, board2)
 
         board1 = Squadro(*self.état_jeu())
 
@@ -286,8 +291,25 @@ class Squadro(SquadroInterface):
 
     def advance_all(self, joueur):
         for i in range(5):
-            if self.état[[self.état[0]["nom"], self.état[1]["nom"]].index(joueur)]["pions"][i] != 12:
+            if self.état[[self.état[0]["nom"], self.état[1]["nom"]].index(joueur)]["pions"][i] != 12 and not self.jeu_terminé():
+                # problème: cette condition ne semble pas protéger de tenter de jouer avec un jeu terminé.
                 self.déplacer_jeton(joueur, i+1)
+
+
+def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant):
+    data = {}
+    joueurs = [état[0]["nom"], état[1]["nom"]]
+    data["id"], data["date"], data["prochain_joueur"], data["joueurs"], data["état"], data["gagnant"] = identifiant, str(
+        datetime.today().replace(microsecond=0)), prochain_joueur, joueurs, état, gagnant
+    # updating file
+    with open(f"{joueurs[0]}-{joueurs[1]}.json", "r", encoding="utf-8") as file:
+        if json.loads(file)["id"] == identifiant:
+            with open(f"{joueurs[0]}-{joueurs[1]}.json", "w", encoding="utf-8") as newfile:
+                # json.dump
+                pass
+    # creating file
+    with open(f"{joueurs[0]}-{joueurs[1]}.json", "w", encoding="utf-8") as file:
+        json.dump(data, file)
 
 
 class SquadroException(Exception):
@@ -300,9 +322,11 @@ class SquadroException(Exception):
 
 
 if __name__ == "__main__":
-    squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
-        "nom": "robot", "pions": [2, 12, 12, 10, 2]})
-    print(squadro)
+    enregistrer_partie_local("123456", "jacob", [{"nom": "anth", "pions": [
+                             7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
+    # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
+    #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
+    # print(squadro)
 
-    squadro.déplacer_jeton("anth", 2)
-    print(squadro)
+    # squadro.déplacer_jeton("anth", 2)
+    # print(squadro)
