@@ -129,7 +129,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
@@ -322,9 +322,9 @@ class SquadroException(Exception):
 
 
 if __name__ == "__main__":
-    enregistrer_partie_local("123456", "jacob", [{"nom": "anth", "pions": [
-                             7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
+    # enregistrer_partie_local("123456", "jacob", [{"nom": "anth", "pions": [
+    #                          7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
     # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
     # print(squadro)
-
+    pass
