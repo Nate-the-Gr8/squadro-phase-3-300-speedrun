@@ -327,7 +327,3 @@ if __name__ == "__main__":
     # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
     # print(squadro)
-<<<<<<< HEAD
-=======
-    pass
->>>>>>> ce2f65a6b0b0c710c55768bdc6283443b35fde58
