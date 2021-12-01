@@ -1,6 +1,5 @@
 """
 Classes:
-
     * Squadro - Classe qui permet de jouer au jeu Squadro
 Functions:
     * move - Permet de déplacer un pion du joueur et de calculer
@@ -9,7 +8,6 @@ Functions:
     * advance_all - Permet de calculer les positions résultantes
     des pions du joueur et des pions de l'enemi en les avançant tous
 """
-from copy import deepcopy
 from squadro_interface import SquadroInterface
 
 
@@ -101,11 +99,11 @@ class Squadro(SquadroInterface):
 
     def déplacer_jeton(self, joueur, jeton):
         nom_joueurs = [self.état[0]["nom"], self.état[1]["nom"]]
-        index_joueur = nom_joueurs.index(joueur)
-        index_enemy = 1 if index_joueur == 0 else 0
         if joueur not in nom_joueurs:
             raise SquadroException(
                 "Le nom du joueur est inexistant pour le jeu en cours.")
+        index_joueur = nom_joueurs.index(joueur)
+        index_enemy = 1 if index_joueur == 0 else 0
         if jeton < 1 or jeton > 5:
             raise SquadroException(
                 "Le numéro du jeton devrait être entre 1 à 5 inclusivement.")
@@ -117,9 +115,37 @@ class Squadro(SquadroInterface):
             raise SquadroException(
                 "Ce jeton a déjà atteint la destination finale.")
 
-        self.état[index_joueur]["pions"][jeton-1], self.état[index_enemy]["pions"] = move(
-            (jeton-1, self.état[index_joueur]["pions"][jeton-1]),
-            self.état[index_enemy]["pions"], self.allmoves[index_joueur])
+        y_position, playerpawn = jeton - \
+            1, self.état[index_joueur]["pions"][jeton-1]
+        player = y_position, playerpawn
+        moves = self.allmoves[index_joueur] if playerpawn < 6 else [
+            4-value for value in self.allmoves[index_joueur]]
+        next_position = (playerpawn + moves[y_position] if playerpawn <
+                         6 else 12-(playerpawn + moves[y_position]))
+        for x_position, enemypawn in enumerate(self.état[index_enemy]["pions"] if playerpawn < 6 else self.état[index_enemy]["pions"][::-1]):
+            temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
+                                   x_position), playerpawn if playerpawn < 6 else 12-playerpawn
+            if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
+                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                # collision!
+                self.état[index_enemy]["pions"][temp_x -
+                                                1] = (0 if enemypawn < 6 else 6)
+                next_position = (temp_x+1 if playerpawn < 6 else temp_x-1)
+                if playerpawn < 6:
+                    player = temp_x
+                else:
+                    player = 12-(temp_x)
+        if (y_position, playerpawn) == player:
+            if playerpawn < 6:
+                player = playerpawn + \
+                    moves[y_position] if playerpawn + \
+                    moves[y_position] <= 6 else 6
+            else:
+                player = (playerpawn + moves[y_position] if playerpawn +
+                          moves[y_position] <= 12 else 12)
+        elif player not in (6, 12):
+            player += 1
+        self.état[index_joueur]["pions"][jeton-1] = player
 
     def jouer_un_coup(self, joueur):
         """
@@ -130,8 +156,7 @@ class Squadro(SquadroInterface):
             la collision va faire reculer - "sabotage"
             2-détermine les pions en danger et qu'il faudrait bouger - "danger"
             3-détermine les pions qui empêchent l'autre joueur de bouger - "blocus"
-            4-détermine si un pion est sur le point de se rendre à 12 ou 6 - "fin"
-            5-s'il pense déplacer un pion, évaluer le score des métriques 2 et 3
+            4-s'il pense déplacer un pion, évaluer le score des métriques 2 et 3
             (métriques de risque) de la position suivante - "risque" et "investissement"
         """
         if joueur not in [self.état[0]["nom"], self.état[1]["nom"]]:
@@ -139,38 +164,64 @@ class Squadro(SquadroInterface):
                 "Le nom du joueur est inexistant pour le jeu en cours.")
         playerindex, scores = [self.état[0]["nom"], self.état[1]["nom"]].index(joueur), [
             0, 0, 0, 0, 0]
+        enemyindex = 0 if playerindex == 1 else 1
         # en ordre: sabotage, danger, blocus, risque, investissement
-        allmoves = ([self.moves, self.vertmoves] if playerindex == 0 else [
-            self.vertmoves, self.moves])
 
-        def sub(player, enemy):
-            return player-sum(enemy)
-        for i, value in enumerate(self.état[playerindex]["pions"]):
-            nouv_pos, nouv_enemy = move((i, value), deepcopy(
-                self.état[0 if playerindex == 1 else 0]["pions"]), allmoves[0])
-            scores[i] += self.weights[0] * \
-                sub(nouv_pos, nouv_enemy) / \
-                (sum(
-                    deepcopy(self.état[0 if playerindex == 1 else 0]["pions"])) + 1)
-            pion_attaqué = get_attacked((i, value), deepcopy(
-                self.état[0 if playerindex == 1 else 0]["pions"]), allmoves[1])
-            scores[i] += self.weights[1] * (pion_attaqué/(value+1))
-            pion_attaqué = get_attacked(
-                (i, nouv_pos), nouv_enemy, allmoves[1])
-            scores[i] += self.weights[3] * (pion_attaqué/(value+1))
-        future_enemy, future_player = advance_all(
-            deepcopy(self.état[0 if playerindex == 1 else 0]["pions"]),
-            self.état[playerindex]["pions"], allmoves[1])
-        for i, value in enumerate(future_player):
-            scores[i] += self.weights[2] * \
-                sub(*move((i, value), future_enemy,
-                    self.moves)) / (sum(future_enemy) + 1)
-            temp_player, temp_enemy = move(
-                (i, value), future_enemy, allmoves[0])
-            temp_player, temp_enemy = move(
-                (i, temp_player), temp_enemy, allmoves[0])
-            scores[i] += self.weights[4] * \
-                sub(temp_player, temp_enemy) / (sum(future_enemy) + 1)
+        # trouver combien de tours un pion a pris pour se rendre là
+
+        def nombre_de_tours(board):
+            board = Squadro(*board.état_jeu())
+            for j in range(2):
+                # not choosing the right allmoves
+                board.état[j]["pions"] = [8 - ((12-pion)/self.choose_moves(j, i)) if pion > 6 else pion /
+                                          self.choose_moves(j, i) for i, pion in enumerate(board.état[j]["pions"])]
+            return board
+
+        def evaluate_score(board1, board2):
+            return sum(nombre_de_tours(board2).état[playerindex]["pions"]) - sum(nombre_de_tours(board2).état[enemyindex]["pions"]) - (sum(nombre_de_tours(board1).état[playerindex]["pions"]) - sum(nombre_de_tours(board1).état[enemyindex]["pions"]))
+
+        board1 = Squadro(*self.état_jeu())
+        for pion in range(5):
+            if self.état[playerindex]["pions"][pion] != 12:
+                # board1 is the baseline reference, board2 is the modified board and board3 is an alternative reference (for future projections)
+                # sabotage
+                board2 = Squadro(*board1.état_jeu())
+                board2.déplacer_jeton(joueur, pion+1)
+                scores[pion] += self.weights[0] * \
+                    evaluate_score(board1, board2)
+                # danger
+                board3 = Squadro(*board1.état_jeu())
+                board3.risk(playerindex, pion)
+                scores[pion] += self.weights[1] * \
+                    evaluate_score(board1, board3)
+                # blocus
+                board2 = Squadro(*board1.état_jeu())
+                board2.advance_all(self.état[enemyindex]["nom"])
+                board3 = Squadro(*board2.état_jeu())
+                board2.déplacer_jeton(joueur, pion+1)
+                scores[pion] += self.weights[2] * \
+                    evaluate_score(board3, board2)
+                # risque
+                board1.déplacer_jeton(joueur, pion+1)
+                board2.risk(playerindex, pion)
+                scores[pion] += self.weights[3] * \
+                    evaluate_score(board1, board2)
+                # investissement
+                if board2.état[playerindex]["pions"][pion] != 12:
+                    board2 = Squadro(*board1.état_jeu())
+                    board2.advance_all(self.état[enemyindex]["nom"])
+                    board2.advance_all(self.état[enemyindex]["nom"])
+                    board3 = Squadro(*board2.état_jeu())
+                    if not board2.jeu_terminé():
+                        # j'arrive tout de même parfois à l'exception du jeu terminé malgré le if
+                        board2.déplacer_jeton(joueur, pion+1)
+                        scores[pion] += self.weights[4] * \
+                            evaluate_score(board3, board2)
+
+        board1 = Squadro(*self.état_jeu())
+
+        # blocus
+
         # Évaluation des résultats - optimise pour trouver le meilleur déplacement
         while True:
             allmoves = scores.index(max(scores))
@@ -202,91 +253,41 @@ class Squadro(SquadroInterface):
                 return joueur["nom"]
         return False
 
+    def choose_moves(self, playerindex, pion):
+        if self.état[playerindex]["pions"][pion] < 6:
+            return self.allmoves[playerindex][pion]
+        return self.allmoves[0 if playerindex == 1 else 1][pion]
 
-def move(player, enemy, moves):
-    """verifies if player's pawns collides with the other player's in the player's next turn
-    arguments:
-        - player (list/tuple): list of ints representing the position of the pawns
-        or tuple representing a single coordinate
-        - enemy (list): list of ints representing the position of the pawns
-        - moves (list): the list of moves that will be added to the player pawn matrix
-    returns:
-        - joueur(int): the new position of the pawn
-        - enemy(list): list of ints representing the positions of the enemy
-    """
-    y_position, playerpawn, enemy = player[0], player[1], deepcopy(enemy)
-    moves = moves if playerpawn < 6 else [4-value for value in moves]
-    next_position = (playerpawn + moves[y_position] if playerpawn <
-                     6 else 12-(playerpawn + moves[y_position]))
-    for x_position, enemypawn in enumerate(enemy if playerpawn < 6 else enemy[::-1]):
-        temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
-                               x_position), playerpawn if playerpawn < 6 else 12-playerpawn
-        if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-            ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+    def risk(self, playerindex, pion):
+        y_position, enemy = pion, self.état[0 if playerindex ==
+                                            1 else 1]["pions"]
+        # the score calculated from this function will likely be too high
+        try:
+            attackerindex = enemy.index(
+                self.état[playerindex]["pions"][pion] if self.état[playerindex]["pions"][pion] < 6 else 12 - self.état[playerindex]["pions"][pion])
+        except ValueError:
+            # not perfect but should be close to it (sabotage metric feedbacks into this metric in that case)
+            for jeton in range(5):
+                if self.état[playerindex]["pions"][jeton] != 12:
+                    self.déplacer_jeton(self.état[playerindex]["nom"], jeton+1)
+            return
+        if attackerindex != -1 and enemy[attackerindex] < (
+            y_position if y_position <= 6 else 12-y_position) >= \
+                enemy[attackerindex] + self.choose_moves(playerindex, attackerindex):
             # collision!
-            enemy[temp_x-1] = (0 if enemypawn < 6 else 6)
-            next_position = (temp_x+1 if playerpawn < 6 else temp_x-1)
-            if playerpawn < 6:
-                player = temp_x
+            self.état[playerindex]["pions"][pion] = (
+                0 if self.état[playerindex]["pions"][pion] < 6 else 6)
+            if self.état[playerindex]["pions"][pion] < 6:
+                enemy[attackerindex] = y_position + \
+                    1 if y_position+1 <= 6 else 6
             else:
-                player = 12-(temp_x)
-    if (y_position, playerpawn) == player:
-        if playerpawn < 6:
-            player = playerpawn + \
-                moves[y_position] if playerpawn+moves[y_position] <= 6 else 6
-        else:
-            player = (playerpawn + moves[y_position] if playerpawn +
-                      moves[y_position] <= 12 else 12)
-    elif player not in (6, 12):
-        player += 1
-    return player, enemy
+                enemy[attackerindex] = y_position + \
+                    7 if y_position+1 <= 12 else 12
 
-
-def get_attacked(player, enemy, moves):
-    """modifies player's pawn positions when he is getting attacked by enemy
-    arguments:
-        - player (list/tuple): list of ints representing the position of the pawns
-        or tuple representing a single coordinate
-        - enemy (list): list of ints representing the position of the pawns
-        - moves (list): the list of moves that will be added to the player pawn matrix
-    returns:
-        - joueur(int): the new position of the pawn
-    """
-    y_position, player, enemy = player[0], player[1], deepcopy(enemy)
-    try:
-        attackerindex = enemy.index(
-            player if player < 6 else 12 - player)
-    except ValueError:
-        return player
-    if attackerindex != -1 and enemy[attackerindex] < (
-        y_position if y_position <= 6 else 12-y_position) >= \
-            enemy[attackerindex] + moves[attackerindex]:
-        # collision!
-        player = (0 if player < 6 else 6)
-        if player < 6:
-            enemy[attackerindex] = y_position + \
-                1 if y_position+1 <= 6 else 6
-        else:
-            enemy[attackerindex] = y_position+7 if y_position+1 <= 12 else 12
-    return player
-
-
-def advance_all(player, enemy, moves):
-    """evaluates future positions of the player and the enemy
-    arguments:
-        - player (list/tuple): list of ints representing the position of the pawns
-        or tuple representing a single coordinate
-        - enemy (list): list of ints representing the position of the pawns
-        - moves (list): the list of moves that will be added to the player pawn matrix
-    returns:
-        - joueur(int): the new position of the pawn
-        - enemy(list): list of ints representing the positions of the enemy
-    """
-    enemy = deepcopy(enemy)
-    for y_position, playerpawn in enumerate(player):
-        playerpawn, enemy = move((y_position, playerpawn), enemy, moves)
-        player[y_position] = playerpawn
-    return player, enemy
+    def advance_all(self, joueur):
+        for i in range(5):
+            if self.état[[self.état[0]["nom"], self.état[1]["nom"]].index(joueur)]["pions"][i] != 12:
+                self.déplacer_jeton(joueur, i+1)
 
 
 class SquadroException(Exception):
@@ -296,3 +297,12 @@ class SquadroException(Exception):
 
     def __str__(self):
         return f"SquadroException: {self.args}"
+
+
+if __name__ == "__main__":
+    squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
+        "nom": "robot", "pions": [2, 12, 12, 10, 2]})
+    print(squadro)
+
+    squadro.déplacer_jeton("anth", 2)
+    print(squadro)
