@@ -306,3 +306,5 @@ if __name__ == "__main__":
 
     squadro.déplacer_jeton("anth", 2)
     print(squadro)
+
+#Test git
