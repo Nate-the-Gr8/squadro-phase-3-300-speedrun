@@ -130,7 +130,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
@@ -202,7 +202,10 @@ class Squadro(SquadroInterface):
                 board2 = Squadro(*board1.état_jeu())
                 board2.advance_all(self.état[enemyindex]["nom"])
                 board3 = Squadro(*board2.état_jeu())
-                board2.déplacer_jeton(joueur, pion+1)
+                try:
+                    board2.déplacer_jeton(joueur, pion+1)
+                except SquadroException:
+                    pass
                 scores[pion] += self.weights[2] * \
                     evaluate_score(board3, board2)
                 # risque
@@ -275,7 +278,11 @@ class Squadro(SquadroInterface):
             # not perfect but should be close to it (sabotage metric feedbacks into this metric in that case)
             for jeton in range(5):
                 if self.état[playerindex]["pions"][jeton] != 12:
-                    self.déplacer_jeton(self.état[playerindex]["nom"], jeton+1)
+                    try:
+                        self.déplacer_jeton(
+                            self.état[playerindex]["nom"], jeton+1)
+                    except SquadroException:
+                        return
             return
         if attackerindex != -1 and enemy[attackerindex] < (
             y_position if y_position <= 6 else 12-y_position) >= \
