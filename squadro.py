@@ -8,9 +8,10 @@ Functions:
     * advance_all - Permet de calculer les positions résultantes
     des pions du joueur et des pions de l'enemi en les avançant tous
 """
-from squadro_interface import SquadroInterface
 from datetime import datetime
 import json
+from os import path
+from squadro_interface import SquadroInterface
 
 
 class Squadro(SquadroInterface):
@@ -129,7 +130,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
@@ -297,19 +298,28 @@ class Squadro(SquadroInterface):
 
 
 def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant):
-    data = {}
-    joueurs = [état[0]["nom"], état[1]["nom"]]
-    data["id"], data["date"], data["prochain_joueur"], data["joueurs"], data["état"], data["gagnant"] = identifiant, str(
-        datetime.today().replace(microsecond=0)), prochain_joueur, joueurs, état, gagnant
-    # updating file
-    with open(f"{joueurs[0]}-{joueurs[1]}.json", "r", encoding="utf-8") as file:
-        if json.loads(file)["id"] == identifiant:
-            with open(f"{joueurs[0]}-{joueurs[1]}.json", "w", encoding="utf-8") as newfile:
-                # json.dump
-                pass
-    # creating file
-    with open(f"{joueurs[0]}-{joueurs[1]}.json", "w", encoding="utf-8") as file:
-        json.dump(data, file)
+    filename, parties = f"{état[0]['nom']}-{état[1]['nom']}.json", []
+    # trying to get the savefile
+    if path.exists(filename):
+        with open(filename, "r", encoding="utf-8") as file:
+            parties = json.load(file)
+    try:
+        # verifying wether the game already exists and modifying if necessary
+        indexpartie = [partie["id"]
+                       for partie in parties].index(identifiant)
+        parties[indexpartie]["état"], parties[indexpartie]["prochain_joueur"], parties[indexpartie]["gagnant"] = état, prochain_joueur, gagnant
+    except ValueError:
+        # creating a new game save if it doesn't exist
+        partie = {}
+        partie["id"], partie["date"], partie["prochain_joueur"], partie["joueurs"], partie["état"], partie["gagnant"] = identifiant, str(
+            datetime.today().replace(microsecond=0)), prochain_joueur, [état[0]["nom"], état[1]["nom"]], état, gagnant
+        parties.append(partie)
+
+    # writing
+    with open(filename, "w", encoding="utf-8") as file:
+        json.dump(parties, file)
+
+    #
 
 
 class SquadroException(Exception):
@@ -322,8 +332,8 @@ class SquadroException(Exception):
 
 
 if __name__ == "__main__":
-    # enregistrer_partie_local("123456", "jacob", [{"nom": "anth", "pions": [
-    #                          7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
+    enregistrer_partie_local("1234567", "jacob", [{"nom": "nate", "pions": [
+                             7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
     # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
     # print(squadro)
