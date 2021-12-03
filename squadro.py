@@ -9,6 +9,7 @@ Functions:
     des pions du joueur et des pions de l'enemi en les avançant tous
 """
 from datetime import datetime
+from squadro_interface import SquadroInterface
 import json
 import argparse
 
