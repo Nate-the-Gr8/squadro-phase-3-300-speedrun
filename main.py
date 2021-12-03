@@ -2,7 +2,8 @@
 
 Ce programme permet de joueur au jeu Squadro.
 """
-from squadro import Squadro
+from squadro import Squadro, analyser_la_ligne_de_commande
+
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
 
 
@@ -22,6 +23,9 @@ def jouer():
 def servertest():
     j1 = "Terminator"
     créer_une_partie(["nagir121"])
+
+#python3 main.py --help (pour tester)
+helpp = analyser_la_ligne_de_commande()
 
 
 if __name__ == "__main__":
