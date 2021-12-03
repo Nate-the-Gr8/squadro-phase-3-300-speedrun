@@ -21,7 +21,7 @@ def jouer():
     print(f'Le gagnant est {partie.jeu_terminé()}')
 
 
-def servertest(printing, t=0.1):
+def servertest(printing, t=0.1, bot=None):
     errors = []
     id_partie, prochain_joueur, état = créer_une_partie(["nagir121"])
     while True:
@@ -49,10 +49,10 @@ def servertest(printing, t=0.1):
         # vérifier en même temps que la
 
 
-def batchtest(n, t=0):
+def batchtest(n, t=0, bot=None):
     result, errors = {}, []
     for _ in range(n):
-        nom, message, error = servertest(False, t)
+        nom, message, error = servertest(False, t, bot)
         liste_résultat = result.get(
             nom, [1, 0] if message == "nagir121" else [1, 0])
         result[nom] = [liste_résultat[0] + (1 if message == "nagir121" else 0),

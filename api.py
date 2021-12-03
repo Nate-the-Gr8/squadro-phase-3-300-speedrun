@@ -54,7 +54,7 @@ def récupérer_une_partie(id_partie):
     return (answer["id"], answer["prochain_joueur"], answer["état"])
 
 
-def créer_une_partie(iduls):
+def créer_une_partie(iduls, bot=None):
     """Débuter une nouvelle partie.
     Args:
         iduls (list): Liste de string représentant le ou les identifiant(s) du ou des joueur(s).
@@ -65,7 +65,10 @@ def créer_une_partie(iduls):
     Raises:
         RuntimeError: Erreur levée lorsque le serveur retourne un code 406.
         """
-    answer = httpx.post(URL + "partie", json={"iduls": iduls})
+    if bot == None:
+        answer = httpx.post(URL + "partie", json={"iduls": iduls})
+    else:
+        answer = httpx.post(URL + "partie", json={"iduls": iduls, "bot": bot})
     if answer.status_code == 406:
         raise RuntimeError(answer.json())
     answer = answer.json()
