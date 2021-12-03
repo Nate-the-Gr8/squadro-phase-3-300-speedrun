@@ -65,7 +65,7 @@ def créer_une_partie(iduls, bot=None):
     Raises:
         RuntimeError: Erreur levée lorsque le serveur retourne un code 406.
         """
-    if bot == None:
+    if bot is None:
         answer = httpx.post(URL + "partie", json={"iduls": iduls})
     else:
         answer = httpx.post(URL + "partie", json={"iduls": iduls, "bot": bot})

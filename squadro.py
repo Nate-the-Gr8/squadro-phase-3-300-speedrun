@@ -130,7 +130,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
@@ -190,7 +190,10 @@ class Squadro(SquadroInterface):
                 # board1 is the baseline reference, board2 is the modified board and board3 is an alternative reference (for future projections)
                 # sabotage
                 board2 = Squadro(*board1.état_jeu())
-                board2.déplacer_jeton(joueur, pion+1)
+                try:
+                    board2.déplacer_jeton(joueur, pion+1)
+                except SquadroException:
+                    pass
                 scores[pion] += self.weights[0] * \
                     evaluate_score(board1, board2)
                 # danger
@@ -209,7 +212,10 @@ class Squadro(SquadroInterface):
                 scores[pion] += self.weights[2] * \
                     evaluate_score(board3, board2)
                 # risque
-                board1.déplacer_jeton(joueur, pion+1)
+                try:
+                    board1.déplacer_jeton(joueur, pion+1)
+                except SquadroException:
+                    pass
                 board2.risk(playerindex, pion)
                 scores[pion] += self.weights[3] * \
                     evaluate_score(board1, board2)
@@ -223,11 +229,12 @@ class Squadro(SquadroInterface):
                 if board2.état[playerindex]["pions"][pion] == 12 or board2.jeu_terminé() is not False:
                     continue
                     # j'arrive tout de même parfois à l'exception du jeu terminé malgré le if
-                board2.déplacer_jeton(joueur, pion+1)
+                try:
+                    board2.déplacer_jeton(joueur, pion+1)
+                except SquadroException:
+                    pass
                 scores[pion] += self.weights[4] * \
                     evaluate_score(board3, board2)
-
-        board1 = Squadro(*self.état_jeu())
 
         # blocus
 
