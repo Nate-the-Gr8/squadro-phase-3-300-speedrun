@@ -11,7 +11,19 @@ Functions:
 from squadro_interface import SquadroInterface
 from datetime import datetime
 import json
+import argparse
 
+
+def analyser_la_ligne_de_commande():
+        parser = argparse.ArgumentParser(description='Squadro')
+        parser.add_argument('IDUL', nargs='+', help='IDUL du ou des joueur(s)')
+        parser.add_argument('-a', '--automatique', action='store_true', \
+                        help='Activer le mode automatique.')
+        parser.add_argument('-l', '--local', action='store_true', \
+                        help='Jouer localement.')
+        parser.add_argument('-p', '--parties', action='store_true', \
+                        help='Lister les 20 dernières parties.')
+        return parser.parse_args()
 
 class Squadro(SquadroInterface):
     """
@@ -322,8 +334,8 @@ class SquadroException(Exception):
 
 
 if __name__ == "__main__":
-    # enregistrer_partie_local("123456", "jacob", [{"nom": "anth", "pions": [
-    #                          7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
+    enregistrer_partie_local("123456", "jacob", [{"nom": "anth", "pions": [
+                             7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
     # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
     # print(squadro)
