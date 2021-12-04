@@ -2,10 +2,11 @@
 
 Ce programme permet de joueur au jeu Squadro.
 """
-from time import sleep
-# from copy import deepcopy
-from squadro import Squadro, SquadroException
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
+from squadro import Squadro, analyser_la_ligne_de_commande
+from squadro import Squadro, SquadroException
+from copy import deepcopy
+from time import sleep
 
 
 def jouer():
@@ -57,6 +58,10 @@ def batchtest(n, printing=False, t=0, bot=None):
                        liste_résultat[1] + (0 if message == "nagir121" else 1)]
         errors += error
     return result, errors
+
+
+# python3 main.py --help (pour tester)
+helpp = analyser_la_ligne_de_commande()
 
 
 if __name__ == "__main__":

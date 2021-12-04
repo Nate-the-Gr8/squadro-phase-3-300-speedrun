@@ -9,9 +9,21 @@ Functions:
     des pions du joueur et des pions de l'enemi en les avançant tous
 """
 from datetime import datetime
-import json
-from os import path
 from squadro_interface import SquadroInterface
+import json
+import argparse
+
+
+def analyser_la_ligne_de_commande():
+    parser = argparse.ArgumentParser(description='Squadro')
+    parser.add_argument('IDUL', nargs='+', help='IDUL du ou des joueur(s)')
+    parser.add_argument('-a', '--automatique', action='store_true',
+                        help='Activer le mode automatique.')
+    parser.add_argument('-l', '--local', action='store_true',
+                        help='Jouer localement.')
+    parser.add_argument('-p', '--parties', action='store_true',
+                        help='Lister les 20 dernières parties.')
+    return parser.parse_args()
 
 
 class Squadro(SquadroInterface):
@@ -130,7 +142,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
@@ -346,7 +358,7 @@ class SquadroException(Exception):
 
 
 if __name__ == "__main__":
-    enregistrer_partie_local("1234567", "jacob", [{"nom": "nate", "pions": [
+    enregistrer_partie_local("1234567", "jacob", [{"nom": "anth", "pions": [
                              7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
     # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
