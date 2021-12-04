@@ -22,29 +22,32 @@ def jouer():
     print(f'Le gagnant est {partie.jeu_terminé()}')
 
 
-def servertest(printing, t=0.1, bot=None):
+def servertest(printing=False, t=0.1, bot=None):
     errors = []
     id_partie, prochain_joueur, état = créer_une_partie(["nagir121"], bot=bot)
     while True:
         try:
+            vieil_état = deepcopy(état)
             coup_joué = Squadro(*état).jouer_un_coup(prochain_joueur)[1]
             id_partie, prochain_joueur, état = jouer_un_coup(
                 id_partie, prochain_joueur, coup_joué)
-            # vieil_état = deepcopy(état)
             # finding out what the enemy played
-            # for i in range(5):
-            #     if vieil_état[1]["pions"][i] != état[1]["pions"][i]:
-            #         move = i
-            # tableau_local = Squadro(*état)
-            # tableau_local.déplacer_jeton(état[1]["nom"], move+1)
-            # if tableau_local.état != état:
-            #     errors.append((move, vieil_état))
-            # vieil_état = deepcopy(état)
+            for i in range(5):
+                if vieil_état[1]["pions"][i] != état[1]["pions"][i]:
+                    move = i
+            tableau_local = Squadro(*vieil_état)
+            tableau_local.déplacer_jeton(état[1]["nom"], move+1)
+            if tableau_local.état != état:
+                errors.append((move, vieil_état))
+                print(move+1, "\n", vieil_état, "\n", état)
+                print(tableau_local.état)
+                break
+            vieil_état = deepcopy(état)
             if printing:
                 print(Squadro(*état))
             sleep(t)
         except StopIteration as message:
-            print(Squadro(*état))
+            # print(Squadro(*état))
             return état[1]["nom"], message, errors
 
 
@@ -65,10 +68,11 @@ def batchtest(n, printing=False, t=0, bot=None):
 
 
 if __name__ == "__main__":
-    jouer()
+    print(servertest(False))
+    # jouer()
     # data = "bogos binted"
     # try:
-    #     data = (batchtest(10, printing=False, t=0, bot=3))
+    #     data = (batchtest(5, printing=False, t=0, bot=3))
     # except SquadroException as err:
     #     with open("testfile.txt", "w", encoding="utf-8") as file:
     #         file.write(data)
