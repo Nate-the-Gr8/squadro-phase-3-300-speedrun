@@ -27,27 +27,24 @@ def servertest(printing=False, t=0.1, bot=None):
     id_partie, prochain_joueur, état = créer_une_partie(["nagir121"], bot=bot)
     while True:
         try:
-            vieil_état = deepcopy(état)
+            tableau_local = Squadro(*deepcopy(état))
             coup_joué = Squadro(*état).jouer_un_coup(prochain_joueur)[1]
             id_partie, prochain_joueur, état = jouer_un_coup(
                 id_partie, prochain_joueur, coup_joué)
             # finding out what the enemy played
+            tableau_local.déplacer_jeton("nagir121", coup_joué)
             for i in range(5):
-                if vieil_état[1]["pions"][i] != état[1]["pions"][i]:
+                if tableau_local.état[1]["pions"][i] != état[1]["pions"][i]:
                     move = i
-            tableau_local = Squadro(*vieil_état)
             tableau_local.déplacer_jeton(état[1]["nom"], move+1)
             if tableau_local.état != état:
-                errors.append((move, vieil_état))
-                print(move+1, "\n", vieil_état, "\n", état)
-                print(tableau_local.état)
-                break
-            vieil_état = deepcopy(état)
+                errors.append((move, tableau_local.état))
             if printing:
                 print(Squadro(*état))
             sleep(t)
         except StopIteration as message:
             # print(Squadro(*état))
+            print(str(message) + " won!")
             return état[1]["nom"], message, errors
 
 
@@ -57,8 +54,8 @@ def batchtest(n, printing=False, t=0, bot=None):
         nom, message, error = servertest(printing, t, bot)
         liste_résultat = result.get(
             nom, [0, 0])
-        result[nom] = [liste_résultat[0] + (1 if message == "nagir121" else 0),
-                       liste_résultat[1] + (0 if message == "nagir121" else 1)]
+        result[nom] = [liste_résultat[0] + (1 if str(message) == "nagir121" else 0),
+                       liste_résultat[1] + (0 if str(message) == "nagir121" else 1)]
         errors += error
     return result, errors
 
@@ -68,13 +65,15 @@ def batchtest(n, printing=False, t=0, bot=None):
 
 
 if __name__ == "__main__":
-    print(servertest(False))
+    # print(servertest(False))
     # jouer()
-    # data = "bogos binted"
-    # try:
-    #     data = (batchtest(5, printing=False, t=0, bot=3))
-    # except SquadroException as err:
-    #     with open("testfile.txt", "w", encoding="utf-8") as file:
-    #         file.write(data)
-    #         file.write("\n" + err)
-    # print(data)
+    data = []
+    try:
+        for i in range(5):
+            print("now against bot " + str(i+1))
+            data.append(batchtest(5, printing=False, t=0, bot=i+1))
+    except SquadroException as err:
+        with open("testfile.txt", "w", encoding="utf-8") as file:
+            file.write(data)
+            file.write("\n" + err)
+    print(data)
