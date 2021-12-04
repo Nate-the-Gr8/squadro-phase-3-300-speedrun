@@ -10,6 +10,7 @@ Functions:
 """
 from datetime import datetime
 from squadro_interface import SquadroInterface
+from os import path
 import json
 import argparse
 

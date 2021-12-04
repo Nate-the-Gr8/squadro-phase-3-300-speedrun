@@ -61,16 +61,16 @@ def batchtest(n, printing=False, t=0, bot=None):
 
 
 # python3 main.py --help (pour tester)
-helpp = analyser_la_ligne_de_commande()
+# helpp = analyser_la_ligne_de_commande()
 
 
 if __name__ == "__main__":
-    # jouer()
-    data = "bogos binted"
-    try:
-        data = (batchtest(10, printing=False, t=0, bot=3))
-    except SquadroException as err:
-        with open("testfile.txt", "w", encoding="utf-8") as file:
-            file.write(data)
-            file.write("\n" + err)
-    print(data)
+    jouer()
+    # data = "bogos binted"
+    # try:
+    #     data = (batchtest(10, printing=False, t=0, bot=3))
+    # except SquadroException as err:
+    #     with open("testfile.txt", "w", encoding="utf-8") as file:
+    #         file.write(data)
+    #         file.write("\n" + err)
+    # print(data)
