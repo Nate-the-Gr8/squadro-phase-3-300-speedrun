@@ -60,13 +60,7 @@ def batchtest(n, printing=False, t=0, bot=None):
     return result, errors
 
 
-# python3 main.py --help (pour tester)
-# helpp = analyser_la_ligne_de_commande()
-
-
-if __name__ == "__main__":
-    # print(servertest(False))
-    # jouer()
+def overalltest(printing=False, t=0):
     data = []
     try:
         for i in range(5):
@@ -77,3 +71,12 @@ if __name__ == "__main__":
             file.write(data)
             file.write("\n" + err)
     print(data)
+
+# python3 main.py --help (pour tester)
+# helpp = analyser_la_ligne_de_commande()
+
+
+if __name__ == "__main__":
+    # print(servertest(False))
+    # jouer()
+    overalltest()
