@@ -143,7 +143,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
@@ -324,12 +324,16 @@ class Squadro(SquadroInterface):
                 self.déplacer_jeton(joueur, i+1)
 
 
-def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant):
-    filename, parties = f"{état[0]['nom']}-{état[1]['nom']}.json", []
+def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
+    filename, altfilename, parties = f"{état[0]['nom']}-{état[1]['nom']}.json", f"{état[1]['nom']}-{état[0]['nom']}.json", []
     # trying to get the savefile
     if path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
             parties = json.load(file)
+    elif path.exists(altfilename):
+        with open(filename, "r", encoding="utf-8") as file:
+            parties = json.load(file)
+            filename = altfilename
     try:
         # verifying wether the game already exists and modifying if necessary
         indexpartie = [partie["id"]
@@ -346,7 +350,28 @@ def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant):
     with open(filename, "w", encoding="utf-8") as file:
         json.dump(parties, file)
 
-    #
+
+def lister_les_parties_local(joueurs):
+    if len(joueurs) == 1:
+        joueurs.append("robot")
+    filename = f"{joueurs[0]}-{joueurs[1]}.json"
+    if path.exists(filename):
+        pass
+    elif path.exists(f"{joueurs[1]}-{joueurs[0]}.json"):
+        filename = f"{joueurs[1]}-{joueurs[0]}.json"
+    else:
+        return
+    with open(filename, "r", encoding="utf-8") as file:
+        parties = json.load(file)
+    if len(parties) > 20:
+        parties = parties[:20]
+    for i in range(len(parties)):
+        del parties[i]["prochain_joueur"]
+        del parties[i]["état"]
+    return parties
+
+
+# Cas de noms inversés ne fonctionne peut-être pas
 
 
 class SquadroException(Exception):
@@ -359,8 +384,9 @@ class SquadroException(Exception):
 
 
 if __name__ == "__main__":
-    enregistrer_partie_local("1234567", "jacob", [{"nom": "anth", "pions": [
+    enregistrer_partie_local("2", "jacob", [{"nom": "anth", "pions": [
                              7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
+    print(lister_les_parties_local(["anth"]))
     # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
     # print(squadro)
