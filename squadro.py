@@ -371,7 +371,18 @@ def lister_les_parties_local(joueurs):
     return parties
 
 
-# Cas de noms inversés ne fonctionne peut-être pas
+def charger_partie_local(identifiant, joueurs):
+    if len(joueurs) == 1:
+        joueurs.append("robot")
+    filename = f"{joueurs[0]}-{joueurs[1]}.json"
+    if path.exists(filename):
+        pass
+    elif path.exists(f"{joueurs[1]}-{joueurs[0]}.json"):
+        filename = f"{joueurs[1]}-{joueurs[0]}.json"
+    with open(filename, "r", encoding="utf-8") as file:
+        parties = json.load(file)
+        jeu = parties[[partie["id"]for partie in parties].index(identifiant)]
+    return jeu["id"], jeu["prochain_joueur"], jeu["état"]
 
 
 class SquadroException(Exception):
@@ -384,9 +395,10 @@ class SquadroException(Exception):
 
 
 if __name__ == "__main__":
-    enregistrer_partie_local("2", "jacob", [{"nom": "anth", "pions": [
-                             7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
-    print(lister_les_parties_local(["anth"]))
+    # enregistrer_partie_local("2", "jacob", [{"nom": "anth", "pions": [
+    #                          7, 3, 12, 12, 12]}, {"nom": "robot", "pions": [2, 12, 12, 10, 2]}], "null")
+    # print(lister_les_parties_local(["robot", "anth"]))
+    print(charger_partie_local("2", ["anth"]))
     # squadro = Squadro({"nom": "anth", "pions": [7, 3, 12, 12, 12]}, {
     #     "nom": "robot", "pions": [2, 12, 12, 10, 2]})
     # print(squadro)
