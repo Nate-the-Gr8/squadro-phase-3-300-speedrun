@@ -3,22 +3,22 @@
 Ce programme permet de joueur au jeu Squadro.
 """
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
-from squadro import Squadro, analyser_la_ligne_de_commande
+from squadro import Squadro, analyser_la_ligne_de_commande, lister_les_parties_local
 from squadro import Squadro, SquadroException
 from copy import deepcopy
 from time import sleep
 
 
 def jouer():
-    j1 = input("Nom du joueur 1: ")
-    j2 = input("Nom du joueur 2: ")
-    if j1 == j2:
-        j2 = str(id(j2))
-    partie = Squadro(j1, j2)
-    while not partie.jeu_terminé():
-        print(partie)
-        partie.déplacer_jeton(j1, partie.demander_coup(j1))
-        partie.déplacer_jeton(j2, partie.jouer_un_coup(j2)[1])
+    args = analyser_la_ligne_de_commande()
+    iduls = args.IDUL
+    if args.parties:
+        if args.local:
+            print(lister_les_parties_local(iduls))
+        else:
+            print(lister_les_parties(iduls))
+    partie = Squadro()
+
     print(f'Le gagnant est {partie.jeu_terminé()}')
 
 
@@ -60,10 +60,10 @@ def batchtest(n, printing=False, t=0, bot=None):
     return result, errors
 
 
-def overalltest(printing=False, t=0):
+def overalltest(n=5, printing=False, t=0):
     data = []
     try:
-        for i in range(5):
+        for i in range(n):
             print("now against bot " + str(i+1))
             data.append(batchtest(5, printing=False, t=0, bot=i+1))
     except SquadroException as err:
@@ -78,5 +78,6 @@ def overalltest(printing=False, t=0):
 
 if __name__ == "__main__":
     # print(servertest(False))
-    # jouer()
-    overalltest()
+    jouer()
+    # batchtest(5, bot=5)
+    # overalltest()

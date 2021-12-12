@@ -38,7 +38,7 @@ class Squadro(SquadroInterface):
         self.vertmoves = [1, 3, 2, 3, 1]
         self.allmoves = [self.moves, self.vertmoves]
         # en ordre: sabotage, danger, blocus, risque, investissement
-        self.weights = [3, 1.5, 1/3, 1.5, 0.5]
+        self.weights = [1, 1, 1, 1, 1]
 
         for joueur in joueurs:
             if not isinstance(joueur, dict):
@@ -95,8 +95,6 @@ class Squadro(SquadroInterface):
        . | .   |     |     |   . | .
        : | : . | . : | : . | . : | :""".splitlines()
         pion = "□□ ○"
-        print("Légende:\n  □ = " + self.état[0]["nom"] +
-              "\n  ■ = " + self.état[1]["nom"] + "\n")
         # pions horizontaux
         positions_x = [4, 8, 14, 20, 26, 32, 35, 31, 25, 19, 13, 7, 4]
         for i, position in enumerate(self.état[0]["pions"]):
@@ -112,7 +110,8 @@ class Squadro(SquadroInterface):
             table[positions_y[position]+1] = table[positions_y[position]+1][:9+i*6] + \
                 ("●" if position < 6 else "█") + \
                 table[positions_y[position]+1][10+i*6:]
-        return "\n".join(table)
+        return ("Légende:\n  □ = " + self.état[0]["nom"] +
+                "\n  ■ = " + self.état[1]["nom"] + "\n") + "\n".join(table)
 
     def déplacer_jeton(self, joueur, jeton):
         nom_joueurs = [self.état[0]["nom"], self.état[1]["nom"]]
@@ -143,7 +142,7 @@ class Squadro(SquadroInterface):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
-                    ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
+                ) and y_position+1 == (enemypawn if enemypawn < 6 else 12 - enemypawn):
                 # collision!
                 self.état[index_enemy]["pions"][temp_x -
                                                 1] = (0 if enemypawn < 6 else 6)
