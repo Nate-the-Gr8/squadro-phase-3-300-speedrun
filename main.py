@@ -3,7 +3,8 @@
 Ce programme permet de joueur au jeu Squadro.
 """
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
-from squadro import Squadro, analyser_la_ligne_de_commande, lister_les_parties_local, formatter_les_parties, enregistrer_partie_local, charger_partie_local
+from squadro import Squadro, analyser_la_ligne_de_commande, lister_les_parties_local,\
+     formatter_les_parties, enregistrer_partie_local, charger_partie_local
 from squadro import Squadro, SquadroException
 from copy import deepcopy
 from time import sleep
@@ -46,7 +47,8 @@ def choisir_partie(iduls, local=False):
     elif choix - 1 < len(parties_en_cours):
         # chargement d'une partie
         if local:
-            # idea: always return a tuple formed of the usual 3 parameters and create the instance of Squadro in the game loop
+            # idea: always return a tuple formed of the usual 3 parameters
+            # and create the instance of Squadro in the game loop
             return Squadro(*(charger_partie_local(parties_en_cours[choix - 1]["id"])[2]))
         # if not local
         return récupérer_une_partie(parties_en_cours[choix - 1]["id"])
