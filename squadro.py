@@ -197,8 +197,10 @@ class Squadro(SquadroInterface):
             return board
 
         def evaluate_score(board1, board2):
-            return sum(nombre_de_tours(board2).état[playerindex]["pions"]) - sum(nombre_de_tours(board2).état[enemyindex]["pions"])\
-                 - (sum(nombre_de_tours(board1).état[playerindex]["pions"]) - sum(nombre_de_tours(board1).état[enemyindex]["pions"]))
+            return sum(nombre_de_tours(board2).état[playerindex]["pions"])\
+                 - sum(nombre_de_tours(board2).état[enemyindex]["pions"])\
+                 - (sum(nombre_de_tours(board1).état[playerindex]["pions"])\
+                      - sum(nombre_de_tours(board1).état[enemyindex]["pions"]))
 
         board1 = Squadro(*self.état_jeu())
         for pion in range(5):
@@ -299,7 +301,8 @@ class Squadro(SquadroInterface):
         try:
             attackerindex = enemy.index(
                 self.état[playerindex]["pions"][pion]\
-                     if self.état[playerindex]["pions"][pion] < 6 else 12 - self.état[playerindex]["pions"][pion])
+                     if self.état[playerindex]["pions"][pion] < 6 else 12\
+                          - self.état[playerindex]["pions"][pion])
         except ValueError:
             # not perfect but should be close to it
             # (sabotage metric feedbacks into this metric in that case)
@@ -349,7 +352,8 @@ def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
         indexpartie = [partie["id"]
         for partie in parties].index(identifiant)
         parties[indexpartie]["état"],\
-             parties[indexpartie]["prochain_joueur"], parties[indexpartie]["gagnant"] = état, prochain_joueur, gagnant
+             parties[indexpartie]["prochain_joueur"],\
+                  parties[indexpartie]["gagnant"] = état, prochain_joueur, gagnant
     except ValueError:
         # creating a new game save if it doesn't exist
         partie = {}

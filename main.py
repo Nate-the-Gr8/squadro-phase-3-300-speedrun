@@ -3,8 +3,7 @@
 Ce programme permet de joueur au jeu Squadro.
 """
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
-from squadro import Squadro, analyser_la_ligne_de_commande, lister_les_parties_local,\
-     formatter_les_parties, enregistrer_partie_local, charger_partie_local
+from squadro import Squadro, analyser_la_ligne_de_commande, lister_les_parties_local, formatter_les_parties, enregistrer_partie_local, charger_partie_local
 from squadro import Squadro, SquadroException
 from copy import deepcopy
 from time import sleep
