@@ -9,10 +9,10 @@ Functions:
     des pions du joueur et des pions de l'enemi en les avançant tous
 """
 from datetime import datetime
-from squadro_interface import SquadroInterface
 from os import path
 import json
 import argparse
+from squadro_interface import SquadroInterface
 
 
 def analyser_la_ligne_de_commande():
@@ -38,7 +38,7 @@ class Squadro(SquadroInterface):
         self.vertmoves = [1, 3, 2, 3, 1]
         self.allmoves = [self.moves, self.vertmoves]
         # en ordre: sabotage, danger, blocus, risque, investissement
-        self.weights = [1, 1, 1, 1, 1]
+        self.weights = [1, 1, 0.5, 1, 0.5]
 
         for joueur in joueurs:
             if not isinstance(joueur, dict):
@@ -383,6 +383,7 @@ def charger_partie_local(identifiant, joueurs):
         jeu = parties[[partie["id"]for partie in parties].index(identifiant)]
     return jeu["id"], jeu["prochain_joueur"], jeu["état"]
 
+
 def formatter_les_parties(parties):
     """Formatter les parties
     Ne faites preuve d'aucune originalité dans votre formattage
@@ -401,6 +402,7 @@ def formatter_les_parties(parties):
             ", " + partie["joueurs"][0] + " vs " + partie["joueurs"][1] + (
             ", gagnant: " + partie["gagnant"] if partie["gagnant"] is not None else "") + "\n"
     return res
+
 
 class SquadroException(Exception):
     """
