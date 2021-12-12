@@ -383,6 +383,24 @@ def charger_partie_local(identifiant, joueurs):
         jeu = parties[[partie["id"]for partie in parties].index(identifiant)]
     return jeu["id"], jeu["prochain_joueur"], jeu["état"]
 
+def formatter_les_parties(parties):
+    """Formatter les parties
+    Ne faites preuve d'aucune originalité dans votre formattage
+    car votre fonction sera testée par un programme et celui-ci est
+    de nature intolérante (votre formattage doit être identique à
+    celui illustré). Notez aussi que votre fonction sera testée
+    avec plusieurs listes de parties différentes.
+    Args:
+        parties (list): Liste des parties d'un joueur.
+    Returns:
+        str: Chaîne de caractière représentant votre liste de parties
+        """
+    res = ""
+    for i, partie in enumerate(parties):
+        res += str(i+1) + " "*(-(i+1)//10+1) + " : " + partie["date"] + \
+            ", " + partie["joueurs"][0] + " vs " + partie["joueurs"][1] + (
+            ", gagnant: " + partie["gagnant"] if partie["gagnant"] is not None else "") + "\n"
+    return res
 
 class SquadroException(Exception):
     """
