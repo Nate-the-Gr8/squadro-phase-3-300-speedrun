@@ -398,6 +398,7 @@ def lister_les_parties_local(joueurs):
     """
     function used to return all of a player couple's locally saved games
     """
+    parties = []
     if len(joueurs) == 1:
         joueurs.append("robot")
     filename = f"{joueurs[0]}-{joueurs[1]}.json"
@@ -405,8 +406,6 @@ def lister_les_parties_local(joueurs):
         pass
     elif path.exists(f"{joueurs[1]}-{joueurs[0]}.json"):
         filename = f"{joueurs[1]}-{joueurs[0]}.json"
-    else:
-        return
     with open(filename, "r", encoding="utf-8") as file:
         parties = json.load(file)
     if len(parties) > 20:

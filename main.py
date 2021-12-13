@@ -46,6 +46,11 @@ def choisir_partie(iduls, num_players, local=False):
     print(formatter_les_parties(parties_en_cours))
     choix = input(
         "Quelle partie voulez-vous continuer? (0 pour créer une partie)")
+    try:
+        choix = int(choix)
+    except ValueError:
+        print("Caractère invalide!")
+        return choisir_partie(iduls, local)
     if choix == 0:
         if local:
             # création d'un id de partie **en cours
@@ -96,24 +101,31 @@ def jouer():
     # mode local
     if args.local:
         partie = Squadro(*état)
+        loopvar = 0
+        joueurs = [état[0]["nom"], état[1]["nom"]]
         while not partie.jeu_terminé():
+            # do only one action per loop and save after it.
+            # verify if game is finished midloop only if the bot is playing
             print(partie)
             partie.déplacer_jeton(
-                partie.état[0]["nom"], partie.demander_coup(partie.état[0]["nom"]))
-            if partie.jeu_terminé() is not False:
-                enregistrer_partie_local(
-                    id_partie, partie.état[1]["nom"], partie.état, gagnant=partie.jeu_terminé())
-                break
-            enregistrer_partie_local(
-                id_partie, partie.état[1]["nom"], partie.état)
+                prochain_joueur, partie.demander_coup(prochain_joueur))
+            loopvar += 1
+            prochain_joueur = joueurs[loopvar%2]
             if num_players == 1:
-                print(partie)
-                partie.déplacer_jeton(
-                    *partie.jouer_un_coup(état[1]["nom"]))
-            else:
-                partie.déplacer_jeton(
-                    partie.état[1]["nom"], partie.demander_coup(partie.état[1]["nom"]))
-        # not done
+                enregistrer_partie_local(
+                    id_partie, prochain_joueur, partie.état)
+                if partie.jeu_terminé() is not False:
+                    break
+                partie.déplacer_jeton(prochain_joueur, partie.jouer_un_coup(prochain_joueur))
+                loopvar += 1
+                prochain_joueur = joueurs[loopvar%2]
+            enregistrer_partie_local(
+                id_partie, prochain_joueur, partie.état)
+            if partie.jeu_terminé() is not False:
+                break
+            
+        enregistrer_partie_local(
+            id_partie, partie.état[1]["nom"], partie.état, gagnant=partie.jeu_terminé())
         print(f'Le gagnant est {partie.jeu_terminé()}!\nBien joué!')
 
     # mode en ligne
