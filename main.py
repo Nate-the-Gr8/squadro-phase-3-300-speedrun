@@ -43,6 +43,10 @@ def choisir_partie(iduls, num_players, local=False):
     for partie in parties:
         if partie["gagnant"] is None:
             parties_en_cours.append(partie)
+    if len(parties) == 0:
+        if local:
+            return str(uuid1()), iduls[0], Squadro(*iduls).état_jeu()
+        return créer_une_partie(iduls)
     print(formatter_les_parties(parties_en_cours))
     choix = input(
         "Quelle partie voulez-vous continuer? (0 pour créer une partie)")
@@ -53,8 +57,7 @@ def choisir_partie(iduls, num_players, local=False):
         return choisir_partie(iduls, local)
     if choix == 0:
         if local:
-            # création d'un id de partie **en cours
-            return uuid1(), iduls[0], Squadro(*iduls).état_jeu()
+            return str(uuid1()), iduls[0], Squadro(*iduls).état_jeu()
         return créer_une_partie(iduls)
     if choix - 1 < len(parties_en_cours):
         # chargement d'une partie
@@ -123,7 +126,6 @@ def jouer():
                 id_partie, prochain_joueur, partie.état)
             if partie.jeu_terminé() is not False:
                 break
-            
         enregistrer_partie_local(
             id_partie, partie.état[1]["nom"], partie.état, gagnant=partie.jeu_terminé())
         print(f'Le gagnant est {partie.jeu_terminé()}!\nBien joué!')
@@ -136,7 +138,7 @@ def jouer():
             coup = partie.demander_coup(prochain_joueur)
             id_partie, prochain_joueur, état = jouer_un_coup(
                 id_partie, prochain_joueur, coup)
-        except RuntimeError as gagnant:
+        except StopIteration as gagnant:
             print(f"Le gagnant est {gagnant}!\nBien joué!")
             break
 

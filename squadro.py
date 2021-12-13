@@ -9,6 +9,7 @@ Functions:
     des pions du joueur et des pions de l'enemi en les avançant tous
 """
 from datetime import datetime
+from json.decoder import JSONDecodeError
 from os import path
 import json
 import argparse
@@ -402,12 +403,18 @@ def lister_les_parties_local(joueurs):
     if len(joueurs) == 1:
         joueurs.append("robot")
     filename = f"{joueurs[0]}-{joueurs[1]}.json"
-    if path.exists(filename):
-        pass
-    elif path.exists(f"{joueurs[1]}-{joueurs[0]}.json"):
+    if path.exists(f"{joueurs[1]}-{joueurs[0]}.json"):
         filename = f"{joueurs[1]}-{joueurs[0]}.json"
+    elif not path.exists(filename):
+        return []
     with open(filename, "r", encoding="utf-8") as file:
-        parties = json.load(file)
+        try:
+            parties = json.load(file)
+        except JSONDecodeError:
+            print("Le fichier est corrompu!\nIl est fort probable que la " + \
+            "dernière partie de ce fichier soit corrompue.\n" + \
+            "La solution recommandée est de l'effacer dans \"" + filename + "\"")
+            return []
     if len(parties) > 20:
         parties = parties[:20]
     for partie in parties:
