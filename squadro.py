@@ -138,8 +138,8 @@ class Squadro(SquadroInterface):
             4-value for value in self.allmoves[index_joueur]]
         next_position = (playerpawn + moves[y_position] if playerpawn <
                          6 else 12-(playerpawn + moves[y_position]))
-        for x_position, enemypawn in enumerate(self.état[index_enemy]["pions"]\
-             if playerpawn < 6 else self.état[index_enemy]["pions"][::-1]):
+        for x_position, enemypawn in enumerate(self.état[index_enemy]["pions"]
+                                               if playerpawn < 6 else self.état[index_enemy]["pions"][::-1]):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
@@ -190,17 +190,17 @@ class Squadro(SquadroInterface):
             board = Squadro(*board.état_jeu())
             for j in range(2):
                 # not choosing the right allmoves
-                board.état[j]["pions"] = [8 - ((12-pion)/self.choose_moves(j, i))\
-                     if pion > 6 else pion /
-                                          self.choose_moves(j, i) for i,\
-                                               pion in enumerate(board.état[j]["pions"])]
+                board.état[j]["pions"] = [8 - ((12-pion)/self.choose_moves(j, i))
+                                          if pion > 6 else pion /
+                                          self.choose_moves(j, i) for i,
+                                          pion in enumerate(board.état[j]["pions"])]
             return board
 
         def evaluate_score(board1, board2):
             return sum(nombre_de_tours(board2).état[playerindex]["pions"])\
-                 - sum(nombre_de_tours(board2).état[enemyindex]["pions"])\
-                 - (sum(nombre_de_tours(board1).état[playerindex]["pions"])\
-                      - sum(nombre_de_tours(board1).état[enemyindex]["pions"]))
+                - sum(nombre_de_tours(board2).état[enemyindex]["pions"])\
+                - (sum(nombre_de_tours(board1).état[playerindex]["pions"])
+                    - sum(nombre_de_tours(board1).état[enemyindex]["pions"]))
 
         board1 = Squadro(*self.état_jeu())
         for pion in range(5):
@@ -246,7 +246,7 @@ class Squadro(SquadroInterface):
                 board2.advance_all(self.état[enemyindex]["nom"])
                 board3 = Squadro(*board2.état_jeu())
                 if board2.état[playerindex]["pions"][pion] == 12\
-                     or board2.jeu_terminé() is not False:
+                        or board2.jeu_terminé() is not False:
                     continue
                     # j'arrive tout de même parfois à l'exception du jeu terminé malgré le if
                 try:
@@ -269,7 +269,8 @@ class Squadro(SquadroInterface):
         if joueur not in (self.état[0]["nom"], self.état[1]["nom"]):
             raise SquadroException(
                 "Le nom du joueur est inexistant pour le jeu en cours.")
-        jeton = int(input("Quel jeton voulez-vous jouer? "))
+        jeton = int(
+            input(f"C'est au tour de {joueur} de jouer!\nQuel pion voulez-vous jouer? "))
         if jeton < 1 or jeton > 5:
             raise SquadroException(
                 "Le numéro du jeton devrait être entre 1 à 5 inclusivement.")
@@ -300,9 +301,9 @@ class Squadro(SquadroInterface):
         # the score calculated from this function will likely be too high
         try:
             attackerindex = enemy.index(
-                self.état[playerindex]["pions"][pion]\
-                     if self.état[playerindex]["pions"][pion] < 6 else 12\
-                          - self.état[playerindex]["pions"][pion])
+                self.état[playerindex]["pions"][pion]
+                if self.état[playerindex]["pions"][pion] < 6 else 12
+                - self.état[playerindex]["pions"][pion])
         except ValueError:
             # not perfect but should be close to it
             # (sabotage metric feedbacks into this metric in that case)
@@ -330,7 +331,7 @@ class Squadro(SquadroInterface):
     def advance_all(self, joueur):
         for i in range(5):
             if self.état[[self.état[0]["nom"],
-             self.état[1]["nom"]].index(joueur)]["pions"][i] != 12 and not self.jeu_terminé():
+                          self.état[1]["nom"]].index(joueur)]["pions"][i] != 12 and not self.jeu_terminé():
                 # problème: cette condition ne semble pas protéger de tenter
                 #  de jouer avec un jeu terminé.
                 self.déplacer_jeton(joueur, i+1)
@@ -338,7 +339,7 @@ class Squadro(SquadroInterface):
 
 def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
     filename, altfilename, parties = f"{état[0]['nom']}-{état[1]['nom']}.json",\
-         f"{état[1]['nom']}-{état[0]['nom']}.json", []
+        f"{état[1]['nom']}-{état[0]['nom']}.json", []
     # trying to get the savefile
     if path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
@@ -350,17 +351,17 @@ def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
     try:
         # verifying wether the game already exists and modifying if necessary
         indexpartie = [partie["id"]
-        for partie in parties].index(identifiant)
+                       for partie in parties].index(identifiant)
         parties[indexpartie]["état"],\
-             parties[indexpartie]["prochain_joueur"],\
-                  parties[indexpartie]["gagnant"] = état, prochain_joueur, gagnant
+            parties[indexpartie]["prochain_joueur"],\
+            parties[indexpartie]["gagnant"] = état, prochain_joueur, gagnant
     except ValueError:
         # creating a new game save if it doesn't exist
         partie = {}
         partie["id"], partie["date"], partie["prochain_joueur"],\
-             partie["joueurs"], partie["état"], partie["gagnant"] = identifiant, str(
+            partie["joueurs"], partie["état"], partie["gagnant"] = identifiant, str(
             datetime.today().replace(microsecond=0)),\
-                 prochain_joueur, [état[0]["nom"], état[1]["nom"]], état, gagnant
+            prochain_joueur, [état[0]["nom"], état[1]["nom"]], état, gagnant
         parties.append(partie)
 
     # writing

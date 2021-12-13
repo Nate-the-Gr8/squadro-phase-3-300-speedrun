@@ -2,11 +2,12 @@
 
 Ce programme permet de joueur au jeu Squadro.
 """
+from copy import deepcopy
+from time import sleep
+from uuid import uuid1
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
 from squadro import Squadro, analyser_la_ligne_de_commande, lister_les_parties_local, formatter_les_parties, enregistrer_partie_local, charger_partie_local
 from squadro import Squadro, SquadroException
-from copy import deepcopy
-from time import sleep
 
 
 def servertest(printing=False, t=0.1, bot=None):
@@ -24,9 +25,9 @@ def servertest(printing=False, t=0.1, bot=None):
             return état[1]["nom"], message
 
 
-def choisir_partie(iduls, local=False):
-    if local and len(iduls) == 1:
-        iduls.append("robot")
+def choisir_partie(iduls, num_players, local=False):
+    if local and num_players == 1:
+        iduls += ["robot"]
     parties_en_cours = []
     if local:
         parties = lister_les_parties_local(iduls)
@@ -40,22 +41,23 @@ def choisir_partie(iduls, local=False):
         "Quelle partie voulez-vous continuer? (0 pour créer une partie)")
     if choix == 0:
         if local:
-            return Squadro(*([iduls[0], "robot"] if len(iduls) == 1 else iduls), iduls)
-        else:
-            return créer_une_partie(*iduls)
-    elif choix - 1 < len(parties_en_cours):
+            # création d'un id de partie **en cours
+            return uuid1(), iduls[0], Squadro(*iduls).état_jeu()
+        return créer_une_partie(iduls)
+    if choix - 1 < len(parties_en_cours):
         # chargement d'une partie
         if local:
-            # idea: always return a tuple formed of the usual 3 parameters
-            # and create the instance of Squadro in the game loop
-            return Squadro(*(charger_partie_local(parties_en_cours[choix - 1]["id"])[2]))
+            return charger_partie_local(parties_en_cours[choix - 1]["id"], iduls)
         # if not local
         return récupérer_une_partie(parties_en_cours[choix - 1]["id"])
+    print("Numéro de partie invalide!")
+    return choisir_partie(iduls, local)
 
 
 def jouer():
     args = analyser_la_ligne_de_commande()
     iduls = args.IDUL
+    num_players = len(iduls)
     # lister les parties
     if args.parties:
         if args.local:
@@ -74,18 +76,31 @@ def jouer():
                 print(f"Le gagnant est {partie.jeu_terminé()}!")
         else:
             servertest(printing=True)
-
-    # Ajouter le robot si la partie est locale et qu'un seul joueur joue
-    partie = choisir_partie(iduls, args.local)
-    # mode en ligne
-
+    # Initialisation ou récupération de la partie
+    id_partie, prochain_joueur, état = choisir_partie(
+        iduls, num_players, args.local)
     # mode local
-    if len(iduls) == 1:
-        iduls.append("robot")
+    if args.local:
+        partie = Squadro(*état)
+        while not partie.jeu_terminé():
+            print(partie)
+            partie.demander_coup(prochain_joueur)
 
-    while not partie.jeu_terminé():
-        pass
-    print(f'Le gagnant est {partie.jeu_terminé()}!')
+        print(f'Le gagnant est {partie.jeu_terminé()}!')
+
+    # mode en ligne
+    while True:
+        try:
+            partie = Squadro(*état)
+            print(partie)
+            coup = partie.demander_coup(prochain_joueur)
+            id_partie, prochain_joueur, état = jouer_un_coup(
+                id_partie, prochain_joueur, coup)
+        except RuntimeError as gagnant:
+            print(f"Le gagnant est {gagnant}!\nBien joué!")
+
+    if input("Voulez-vous jouer une autre partie? (y pour rejouer)") == "y":
+        jouer()
 
 
 def batchtest(n, printing=False, t=0, bot=None):
