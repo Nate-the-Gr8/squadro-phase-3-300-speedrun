@@ -2,16 +2,19 @@
 
 Ce programme permet de joueur au jeu Squadro.
 """
-from copy import deepcopy
 from time import sleep
 from uuid import uuid1
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
-from squadro import Squadro, analyser_la_ligne_de_commande, lister_les_parties_local, formatter_les_parties, enregistrer_partie_local, charger_partie_local
-from squadro import Squadro, SquadroException
+from squadro import Squadro, SquadroException, analyser_la_ligne_de_commande,\
+    lister_les_parties_local, formatter_les_parties, enregistrer_partie_local, charger_partie_local
 
 
-def servertest(printing=False, t=0.1, bot=None):
-    errors = []
+def servertest(printing=False, delay=0.1, bot=None):
+    """
+    servertest: function used to test the bot implemented by the Squadro class against
+    the Python classroom server in an efficient and simple way.
+    Also used to run automatic games
+    """
     id_partie, prochain_joueur, état = créer_une_partie(["nagir121"], bot=bot)
     while True:
         try:
@@ -20,12 +23,16 @@ def servertest(printing=False, t=0.1, bot=None):
                 id_partie, prochain_joueur, coup_joué)
             if printing:
                 print(Squadro(*état))
-            sleep(t)
+            sleep(delay)
         except StopIteration as message:
             return état[1]["nom"], message
 
 
 def choisir_partie(iduls, num_players, local=False):
+    """
+    choisir_partie: function used to choose game in a simple and efficient manner,
+    whether the game is played locally or on the Python classroom server.
+    """
     if local and num_players == 1:
         iduls += ["robot"]
     parties_en_cours = []
@@ -55,6 +62,9 @@ def choisir_partie(iduls, num_players, local=False):
 
 
 def jouer():
+    """
+    jouer: mainloop function
+    """
     args = analyser_la_ligne_de_commande()
     iduls = args.IDUL
     num_players = len(iduls)
@@ -71,11 +81,15 @@ def jouer():
             partie = Squadro("robot-1", "robot-2")
             while not partie.jeu_terminé():
                 partie.déplacer_jeton(*partie.jouer_un_coup("robot-1"))
+                print(partie)
+                sleep(0.2)
                 partie.déplacer_jeton(*partie.jouer_un_coup("robot-2"))
-            else:
-                print(f"Le gagnant est {partie.jeu_terminé()}!")
+                sleep(0.2)
+                print(partie)
+            print(f"Le gagnant est {partie.jeu_terminé()}!")
         else:
-            servertest(printing=True)
+            print(f"Le gagnant est {servertest(printing=True)}!")
+        return
     # Initialisation ou récupération de la partie
     id_partie, prochain_joueur, état = choisir_partie(
         iduls, num_players, args.local)
@@ -84,9 +98,23 @@ def jouer():
         partie = Squadro(*état)
         while not partie.jeu_terminé():
             print(partie)
-            partie.demander_coup(prochain_joueur)
-
-        print(f'Le gagnant est {partie.jeu_terminé()}!')
+            partie.déplacer_jeton(
+                partie.état[0]["nom"], partie.demander_coup(partie.état[0]["nom"]))
+            if partie.jeu_terminé() is not False:
+                enregistrer_partie_local(
+                    id_partie, partie.état[1]["nom"], partie.état, gagnant=partie.jeu_terminé())
+                break
+            enregistrer_partie_local(
+                id_partie, partie.état[1]["nom"], partie.état)
+            if num_players == 1:
+                print(partie)
+                partie.déplacer_jeton(
+                    *partie.jouer_un_coup(état[1]["nom"]))
+            else:
+                partie.déplacer_jeton(
+                    partie.état[1]["nom"], partie.demander_coup(partie.état[1]["nom"]))
+        # not done
+        print(f'Le gagnant est {partie.jeu_terminé()}!\nBien joué!')
 
     # mode en ligne
     while True:
@@ -98,15 +126,20 @@ def jouer():
                 id_partie, prochain_joueur, coup)
         except RuntimeError as gagnant:
             print(f"Le gagnant est {gagnant}!\nBien joué!")
+            break
 
     if input("Voulez-vous jouer une autre partie? (y pour rejouer)") == "y":
         jouer()
 
 
-def batchtest(n, printing=False, t=0, bot=None):
+def batchtest(number, printing=False, delay=0, bot=None):
+    """
+    batchtest: function used to repeatedly test the bot implemented by the
+    Squadro class against the Python classroom server bot.
+    """
     result = {}
-    for _ in range(n):
-        nom, message = servertest(printing, t, bot)
+    for _ in range(number):
+        nom, message = servertest(printing, delay, bot)
         liste_résultat = result.get(
             nom, [0, 0])
         result[nom] = [liste_résultat[0] + (1 if str(message) == "nagir121" else 0),
@@ -114,12 +147,15 @@ def batchtest(n, printing=False, t=0, bot=None):
     return result
 
 
-def overalltest(n=5, printing=False, t=0):
+def overalltest(number=5, printing=False, delay=0):
+    """
+    overalltest: function used to repeatedly test against all the Python server bots.
+    """
     data = []
     try:
-        for i in range(n):
+        for i in range(number):
             print("now against bot " + str(i+1))
-            data.append(batchtest(5, printing=False, t=0, bot=i+1))
+            data.append(batchtest(5, printing=printing, delay=0, bot=i+1, delay=delay))
     except SquadroException as err:
         with open("testfile.txt", "w", encoding="utf-8") as file:
             file.write(data)
