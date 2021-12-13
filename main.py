@@ -155,7 +155,7 @@ def overalltest(number=5, printing=False, delay=0):
     try:
         for i in range(number):
             print("now against bot " + str(i+1))
-            data.append(batchtest(5, printing=printing, delay=0, bot=i+1, delay=delay))
+            data.append(batchtest(5, printing=printing, bot=i+1, delay=delay))
     except SquadroException as err:
         with open("testfile.txt", "w", encoding="utf-8") as file:
             file.write(data)
