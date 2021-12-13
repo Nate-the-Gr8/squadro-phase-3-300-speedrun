@@ -119,13 +119,14 @@ def jouer():
                     id_partie, prochain_joueur, partie.état)
                 if partie.jeu_terminé() is not False:
                     break
-                partie.déplacer_jeton(prochain_joueur, partie.jouer_un_coup(prochain_joueur))
+                partie.déplacer_jeton(*partie.jouer_un_coup(prochain_joueur))
                 loopvar += 1
                 prochain_joueur = joueurs[loopvar%2]
             enregistrer_partie_local(
                 id_partie, prochain_joueur, partie.état)
             if partie.jeu_terminé() is not False:
                 break
+        print(partie)
         enregistrer_partie_local(
             id_partie, partie.état[1]["nom"], partie.état, gagnant=partie.jeu_terminé())
         print(f'Le gagnant est {partie.jeu_terminé()}!\nBien joué!')
@@ -139,6 +140,7 @@ def jouer():
             id_partie, prochain_joueur, état = jouer_un_coup(
                 id_partie, prochain_joueur, coup)
         except StopIteration as gagnant:
+            partie = Squadro(*état)
             print(f"Le gagnant est {gagnant}!\nBien joué!")
             break
 
