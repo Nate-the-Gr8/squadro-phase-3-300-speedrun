@@ -16,6 +16,17 @@ from squadro_interface import SquadroInterface
 
 
 def analyser_la_ligne_de_commande():
+    """Génère un évaluateur de ligne de commande
+    En utilisant le module argparse, génère un évaluateur de ligne de commande.
+    L'analyseur offre (1) argument positionnel:
+        IDUL: IDUL du ou des joueurs.
+    Ainsi que les (2) arguments optionnel:
+        help: show this help message and exit
+        parties: Lister les 20 dernières parties.
+    Returns:
+        Namespace: Retourne un objet de type Namespace possédant
+            les clef «IDUL» et «parties».
+    """
     parser = argparse.ArgumentParser(description='Squadro')
     parser.add_argument('IDUL', nargs='+', help='IDUL du ou des joueur(s)')
     parser.add_argument('-a', '--automatique', action='store_true',
@@ -138,8 +149,8 @@ class Squadro(SquadroInterface):
             4-value for value in self.allmoves[index_joueur]]
         next_position = (playerpawn + moves[y_position] if playerpawn <
                          6 else 12-(playerpawn + moves[y_position]))
-        for x_position, enemypawn in enumerate(self.état[index_enemy]["pions"]
-                                               if playerpawn < 6 else self.état[index_enemy]["pions"][::-1]):
+        for x_position, enemypawn in enumerate(self.état[index_enemy]
+        ["pions"] if playerpawn < 6 else self.état[index_enemy]["pions"][::-1]):
             temp_x, temp_player = (x_position+1 if playerpawn < 6 else 5 -
                                    x_position), playerpawn if playerpawn < 6 else 12-playerpawn
             if (next_position >= temp_x >= temp_player or next_position <= temp_x <= temp_player
@@ -291,11 +302,18 @@ class Squadro(SquadroInterface):
         return False
 
     def choose_moves(self, playerindex, pion):
+        """
+        function used to efficiently choose the moves linked
+        to the player and orientation of the pawn
+        """
         if self.état[playerindex]["pions"][pion] < 6:
             return self.allmoves[playerindex][pion]
         return self.allmoves[0 if playerindex == 1 else 1][pion]
 
     def risk(self, playerindex, pion):
+        """
+        function used to evaluate a risk that a specific pawn has to be attacked and the outcome
+        """
         y_position, enemy = pion, self.état[0 if playerindex ==
                                             1 else 1]["pions"]
         # the score calculated from this function will likely be too high
@@ -329,15 +347,22 @@ class Squadro(SquadroInterface):
                     7 if y_position+1 <= 12 else 12
 
     def advance_all(self, joueur):
+        """
+        function use to advance all of a player's pawns
+        """
         for i in range(5):
             if self.état[[self.état[0]["nom"],
-                          self.état[1]["nom"]].index(joueur)]["pions"][i] != 12 and not self.jeu_terminé():
+                          self.état[1]["nom"]].index(joueur)]["pions"][i
+                          ] != 12 and not self.jeu_terminé():
                 # problème: cette condition ne semble pas protéger de tenter
                 #  de jouer avec un jeu terminé.
                 self.déplacer_jeton(joueur, i+1)
 
 
 def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
+    """
+    function used to save a game in a local .json file
+    """
     filename, altfilename, parties = f"{état[0]['nom']}-{état[1]['nom']}.json",\
         f"{état[1]['nom']}-{état[0]['nom']}.json", []
     # trying to get the savefile
@@ -370,6 +395,9 @@ def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
 
 
 def lister_les_parties_local(joueurs):
+    """
+    function used to return all of a player couple's locally saved games
+    """
     if len(joueurs) == 1:
         joueurs.append("robot")
     filename = f"{joueurs[0]}-{joueurs[1]}.json"
@@ -383,13 +411,16 @@ def lister_les_parties_local(joueurs):
         parties = json.load(file)
     if len(parties) > 20:
         parties = parties[:20]
-    for i in range(len(parties)):
-        del parties[i]["prochain_joueur"]
-        del parties[i]["état"]
+    for partie in parties:
+        del partie["prochain_joueur"]
+        del partie["état"]
     return parties
 
 
 def charger_partie_local(identifiant, joueurs):
+    """
+    function used to load a game stored in a .json file's relevant game information
+    """
     if len(joueurs) == 1:
         joueurs.append("robot")
     filename = f"{joueurs[0]}-{joueurs[1]}.json"
