@@ -96,7 +96,7 @@ def jouer():
                 print(partie)
             print(f"Le gagnant est {partie.jeu_terminé()}!")
         else:
-            print(f"Le gagnant est {servertest(printing=True)}!")
+            print(f"Le gagnant est {servertest(printing=True)[1]}!")
         return
     # Initialisation ou récupération de la partie
     id_partie, prochain_joueur, état = choisir_partie(
