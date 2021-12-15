@@ -366,8 +366,6 @@ def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
     """
     function used to save a game in a local .json file
     """
-    if len(joueurs) == 1:
-        joueurs.append("robot")
     filename, altfilename, parties = f"{état[0]['nom']}-{état[1]['nom']}.json",\
         f"{état[1]['nom']}-{état[0]['nom']}.json", []
     # trying to get the savefile
