@@ -192,6 +192,10 @@ def overalltest(number=5, printing=False, delay=0):
 
 
 def selftest(number):
+    """
+    Fonction pour tester la méthode jouer_un_coup de la classe Squadro 
+    contre elle-même en faisant varier la variable "weights"
+    """
     for _ in range(number):
         partie = Squadro("robot-1", "terminator")
         partie2 = Squadro("robot-1", "terminator")
