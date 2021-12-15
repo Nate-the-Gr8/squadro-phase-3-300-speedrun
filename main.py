@@ -4,6 +4,7 @@ Ce programme permet de joueur au jeu Squadro.
 """
 from time import sleep
 from uuid import uuid1
+from httpx import TimeoutException
 from api import jouer_un_coup, récupérer_une_partie, lister_les_parties, créer_une_partie
 from squadro import Squadro, SquadroException, analyser_la_ligne_de_commande,\
     lister_les_parties_local, formatter_les_parties, enregistrer_partie_local, charger_partie_local
@@ -90,6 +91,8 @@ def jouer():
             while not partie.jeu_terminé():
                 partie.déplacer_jeton(*partie.jouer_un_coup("robot-1"))
                 print(partie)
+                if partie.jeu_terminé() is not False:
+                    break
                 sleep(0.2)
                 partie.déplacer_jeton(*partie.jouer_un_coup("robot-2"))
                 sleep(0.2)
@@ -156,6 +159,7 @@ def batchtest(number, printing=False, delay=0, bot=None):
     result = {}
     for _ in range(number):
         nom, message = servertest(printing, delay, bot)
+        print(f"{message} a gagné!")
         liste_résultat = result.get(
             nom, [0, 0])
         result[nom] = [liste_résultat[0] + (1 if str(message) == "nagir121" else 0),
@@ -169,21 +173,43 @@ def overalltest(number=5, printing=False, delay=0):
     """
     data = []
     try:
-        for i in range(number):
+        for i in range(5):
             print("now against bot " + str(i+1))
-            data.append(batchtest(5, printing=printing, bot=i+1, delay=delay))
+            data.append(batchtest(number, printing=printing, bot=i+1, delay=delay))
     except SquadroException as err:
-        with open("testfile.txt", "w", encoding="utf-8") as file:
+        with open("overalltest logger.txt", "w", encoding="utf-8") as file:
             file.write(data)
             file.write("\n" + err)
+    except TimeoutException:
+        print(data)
+        print("The server timed out!")
+    wins = 0
+    for dictionnaire in data:
+        for value in dictionnaire.values():
+            wins += value[0]
+    print(f"Win rate: {wins/(number*5)*100}%")
     print(data)
 
-# python3 main.py --help (pour tester)
-# helpp = analyser_la_ligne_de_commande()
+
+def selftest(number):
+    for _ in range(number):
+        partie = Squadro("robot-1", "terminator")
+        partie2 = Squadro("robot-1", "terminator")
+        partie2.weights = [2.5, 1, 0.25, 1, 0.25]
+        while not partie.jeu_terminé():
+            partie.déplacer_jeton(*partie.jouer_un_coup("robot-1"))
+            # print(partie)
+            partie2.état = partie.état_jeu()
+            partie.déplacer_jeton(*partie2.jouer_un_coup("terminator"))
+            # print(partie)
+        print(partie2.weights)
+        print(f"Le gagnant est {partie.jeu_terminé()}!")
+
 
 
 if __name__ == "__main__":
     # print(servertest(False))
-    jouer()
+    # jouer()
     # batchtest(5, bot=5)
-    # overalltest()
+    # overalltest(number=3)
+    selftest(3)

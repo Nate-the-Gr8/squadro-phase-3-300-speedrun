@@ -50,7 +50,7 @@ class Squadro(SquadroInterface):
         self.vertmoves = [1, 3, 2, 3, 1]
         self.allmoves = [self.moves, self.vertmoves]
         # en ordre: sabotage, danger, blocus, risque, investissement
-        self.weights = [1, 1, 0.5, 1, 0.5]
+        self.weights = [2.5, 1, 0.25, 1, 0.25]
 
         for joueur in joueurs:
             if not isinstance(joueur, dict):
@@ -223,6 +223,8 @@ class Squadro(SquadroInterface):
                 board2 = Squadro(*board1.état_jeu())
                 try:
                     board2.déplacer_jeton(joueur, pion+1)
+                    if board2.jeu_terminé():
+                        return joueur, pion+1
                 except SquadroException:
                     pass
                 scores[pion] += self.weights[0] * \
@@ -364,6 +366,8 @@ def enregistrer_partie_local(identifiant, prochain_joueur, état, gagnant=None):
     """
     function used to save a game in a local .json file
     """
+    if len(joueurs) == 1:
+        joueurs.append("robot")
     filename, altfilename, parties = f"{état[0]['nom']}-{état[1]['nom']}.json",\
         f"{état[1]['nom']}-{état[0]['nom']}.json", []
     # trying to get the savefile
