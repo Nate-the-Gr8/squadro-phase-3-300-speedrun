@@ -209,7 +209,7 @@ def selftest(number):
 
 if __name__ == "__main__":
     # print(servertest(False))
-    # jouer()
+    jouer()
     # batchtest(5, bot=5)
     # overalltest(number=3)
-    selftest(3)
+    # selftest(3)
